@@ -1,31 +1,37 @@
-import express from "express"
-import fs from "fs"
+import express from "express";
+import fs from "fs";
 import { format } from "date-fns";
+import path from "path";
 
-const app = express()
-const PORT = 4000;
+const app = express();
+const PORT = 4000; //http:localhost:4000
 
-let filepath; // filepath for the  endpoint functions
+// creates file with the name of current timestamp
+app.get("/", (req, res) => {
+  let today = format(new Date(), "dd-mm-yyyy-hh-mm--ss");
+  const filePath = `./TimeStamp/${today}.txt`;
+  const fileContent = today;
+  fs.writeFileSync(filePath, fileContent, "utf-8");
+  res.status(200).send(`<h1 style="text-align: center;">Current TimeStamp: ${today}</h1><h3 style="text-align: center;">Timestamp has been successfully saved to a file named (TimeStamp.txt.) Change the endpoint to /read to retrieve the all Timestamp data.</h3>` );
+  
+});
 
-app.get ('/',(req,res)=>{
-    res.status(200).send(`<div> <h1 style="text-align: center;">Visit /write Endpoint to save the current Timestamp to a file named TimeStamp.txt </h1> </div>`)
-})
+// reading all the files from the folder
+app.get("/read", (req, res) => {
+  const folderPath = "TimeStamp";
 
-app.get('/write',(req,res)=>{
-    let today = format(new Date(),'dd-mm-yyyy-hh-mm-ss')
-    filepath = `TimeStamp/${today}.txt`
-    fs.writeFileSync(filepath,`${today}`,'utf-8')
-    res.status(200).send(`<div> <h1 style="text-align: center;">Timestamp has been successfully saved to a file named (TimeStamp.txt.) Change the endpoint to /read to retrieve the Timestamp data.</h1> </div>`)
-})
-
-app.get('/read',(req,res)=>{
-    if (!filepath) {
-        return res.status(404).send('No file written yet');
+  fs.readdir(folderPath, (err, files) => {
+    if (err) {
+      res
+        .status(500)
+        .send("An error occurred while listing the files from the directory");
+    } else {
+      const textFiles = files.filter((file) => path.extname(file) === ".txt"); //filter the all text file
+      res.status(200).json(textFiles)
     }
-    let data = fs.readFileSync(filepath,'utf-8')
-    res.status(200).send(`<h1 style="text-align: center;">Current TimeStamp:${data}</h1>`)
-})
+  });
+});
 
-app.listen(PORT,()=>{
-    console.log(`app is running on port ${PORT}`)
-})
+app.listen(PORT, () => {
+  console.log(`App Is listening in the port ${PORT}`);
+});
