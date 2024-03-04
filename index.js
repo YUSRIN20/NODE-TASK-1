@@ -23,7 +23,7 @@ app.get('/read',(req,res)=>{
         return res.status(404).send('No file written yet');
     }
     let data = fs.readFileSync(filepath,'utf-8')
-    res.status(200).send(data)
+    res.status(200).send(`<h1>${data}</h1>`)
 })
 
 app.listen(PORT,()=>{
